@@ -38,6 +38,7 @@
         "url": "git+https://github.com/cur3n4/webpack-obfuscator.git"
     },
     "scripts": {
+        "prepack": "npx tsc",
         "setup": "npm install",
         "build": "npx tsc",
         "watch": "npx tsc -w",
