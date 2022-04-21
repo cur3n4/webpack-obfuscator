@@ -68,62 +68,59 @@ export class WebpackObfuscatorPlugin {
                     let identifiersPrefixCounter: number = 0;
                     const sourcemapOutput: {[index:string]: string} = {};
 
-                    compilation.chunks.forEach(chunk => {
-                        chunk.files.forEach((fileName: string) => {
-                            if (this.options.sourceMap && fileName.toLowerCase().endsWith('.map')) {
-                                let srcName = fileName.toLowerCase().substr(0, fileName.length - 4);
+                    for (let fileName in compilation.assets) {
+                        if (this.options.sourceMap && fileName.toLowerCase().endsWith('.map')) {
+                            let srcName = fileName.toLowerCase().substr(0, fileName.length - 4);
 
-                                if (!this.shouldExclude(srcName)) {
-                                    const transferredSourceMap = transferSourceMap({
-                                        fromSourceMap: sourcemapOutput[srcName],
-                                        toSourceMap: compilation.assets[fileName].source()
-                                    });
-                                    const finalSourcemap = JSON.parse(transferredSourceMap);
-
-                                    finalSourcemap['sourcesContent'] = JSON.parse(
-                                        assets[fileName].source().toString()
-                                    )['sourcesContent'];
-                                    assets[fileName] = new sources.RawSource(JSON.stringify(finalSourcemap), false);
-                                }
-
-                                return;
-                            }
-
-                            const isValidExtension = WebpackObfuscatorPlugin
-                                .allowedExtensions
-                                .some((extension: string) => fileName.toLowerCase().endsWith(extension));
-
-                            if (!isValidExtension || this.shouldExclude(fileName)) {
-                                return;
-                            }
-
-                            const asset = compilation.assets[fileName]
-                            const { inputSource, inputSourceMap } = this.extractSourceAndSourceMap(asset);
-                            const { obfuscatedSource, obfuscationSourceMap } = this.obfuscate(inputSource, fileName, identifiersPrefixCounter);
-
-                            if (this.options.sourceMap && inputSourceMap) {
-                                sourcemapOutput[fileName] = obfuscationSourceMap;
-
+                            if (!this.shouldExclude(srcName)) {
                                 const transferredSourceMap = transferSourceMap({
-                                    fromSourceMap: obfuscationSourceMap,
-                                    toSourceMap: inputSourceMap
+                                    fromSourceMap: sourcemapOutput[srcName],
+                                    toSourceMap: compilation.assets[fileName].source()
                                 });
                                 const finalSourcemap = JSON.parse(transferredSourceMap);
-                                finalSourcemap['sourcesContent'] = inputSourceMap['sourcesContent'];
 
-                                // @ts-ignore Wrong types
-                                assets[fileName] = new sources.SourceMapSource(
-                                    obfuscatedSource,
-                                    fileName,
-                                    finalSourcemap
-                                );
-                            } else {
-                                assets[ fileName ] = new sources.RawSource( obfuscatedSource, false );
+                                finalSourcemap['sourcesContent'] = JSON.parse(
+                                    assets[fileName].source().toString()
+                                )['sourcesContent'];
+                                assets[fileName] = new sources.RawSource(JSON.stringify(finalSourcemap), false);
                             }
 
-                            identifiersPrefixCounter++;
-                        });
-                    });
+                            return;
+                        }
+
+                        const isValidExtension = WebpackObfuscatorPlugin
+                            .allowedExtensions
+                            .some((extension: string) => fileName.toLowerCase().endsWith(extension));
+
+                        if (!isValidExtension || this.shouldExclude(fileName)) {
+                            return;
+                        }
+
+                        const asset = compilation.assets[fileName]
+                        const { inputSource, inputSourceMap } = this.extractSourceAndSourceMap(asset);
+                        const { obfuscatedSource, obfuscationSourceMap } = this.obfuscate(inputSource, fileName, identifiersPrefixCounter);
+
+                        if (this.options.sourceMap && inputSourceMap) {
+                            sourcemapOutput[fileName] = obfuscationSourceMap;
+
+                            const transferredSourceMap = transferSourceMap({
+                                fromSourceMap: obfuscationSourceMap,
+                                toSourceMap: inputSourceMap
+                            });
+                            const finalSourcemap = JSON.parse(transferredSourceMap);
+                            finalSourcemap['sourcesContent'] = inputSourceMap['sourcesContent'];
+
+                            // @ts-ignore Wrong types
+                            assets[fileName] = new sources.SourceMapSource(
+                                obfuscatedSource,
+                                fileName,
+                                finalSourcemap
+                            );
+                        } else {
+                            assets[ fileName ] = new sources.RawSource( obfuscatedSource, false );
+                        }
+
+                        identifiersPrefixCounter++;
                 }
             );
         });
