@@ -35,7 +35,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/javascript-obfuscator/webpack-obfuscator.git"
+        "url": "git+https://github.com/cur3n4/webpack-obfuscator.git"
     },
     "scripts": {
         "setup": "npm install",
